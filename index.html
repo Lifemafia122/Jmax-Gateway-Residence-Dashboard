@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jmax Gateway Residence — Sales Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#f0f4f8;--bg-card:#ffffff;--bg-header:#1a2b4a;--bg-header2:#1e3a6e;--bg-section:#f8fafc;--text:#1e293b;--text-muted:#64748b;--text-header:#ffffff;--border:#e2e8f0;--blue:#2563eb;--blue-light:#dbeafe;--green:#16a34a;--green-light:#dcfce7;--yellow:#d97706;--yellow-light:#fef3c7;--red:#dc2626;--red-light:#fee2e2;--purple:#7c3aed;--purple-light:#ede9fe;--teal:#0891b2;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);--shadow-lg:0 10px 25px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05);--radius:12px;--radius-sm:8px;color-scheme:light;}
+[data-theme="dark"]{--bg:#0f172a;--bg-card:#1e293b;--bg-header:#0a1628;--bg-header2:#0f2044;--bg-section:#162032;--text:#e2e8f0;--text-muted:#94a3b8;--border:#334155;--blue-light:#1e3a6e;--green-light:#14532d;--yellow-light:#451a03;--red-light:#450a0a;--purple-light:#2e1065;--shadow:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);--shadow-md:0 4px 6px rgba(0,0,0,.3),0 2px 4px rgba(0,0,0,.2);--shadow-lg:0 10px 25px rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.2);color-scheme:dark;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tahoma','Segoe UI','Arial Unicode MS',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+.header{background:linear-gradient(135deg,var(--bg-header) 0%,var(--bg-header2) 100%);color:var(--text-header);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:var(--shadow-lg);position:sticky;top:0;z-index:100;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.logo-box{width:46px;height:46px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;letter-spacing:-1px;flex-shrink:0;}
+.header-title{font-size:clamp(14px,2.5vw,20px);font-weight:700;letter-spacing:.3px;}
+.header-sub{font-size:12px;opacity:.75;margin-top:2px;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;transition:all .2s;white-space:nowrap;}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.btn-ghost:hover{background:rgba(255,255,255,.22);}
+.btn-primary{background:#2563eb;color:#fff;}
+.btn-success{background:#16a34a;color:#fff;}
+.last-updated{font-size:11px;opacity:.6;color:#fff;}
+.tab-bar{display:flex;gap:4px;background:var(--bg-card);padding:6px;border-radius:var(--radius);margin:16px 20px 0;box-shadow:var(--shadow);overflow-x:auto;}
+.tab{padding:8px 18px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-muted);transition:all .2s;white-space:nowrap;border:none;background:transparent;font-family:inherit;}
+.tab.active{background:var(--blue);color:#fff;box-shadow:var(--shadow-md);}
+.tab:not(.active):hover{background:var(--bg-section);color:var(--text);}
+.main{padding:16px 20px 40px;position:relative;}
+.tab-content{display:block;opacity:0;pointer-events:none;position:absolute;left:0;right:0;top:0;transition:opacity .2s;}
+.tab-content.active{opacity:1;pointer-events:auto;position:relative;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;}
+.kpi-card{background:var(--bg-card);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid transparent;transition:transform .2s,box-shadow .2s;}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.kpi-card.blue{border-left-color:var(--blue);}
+.kpi-card.green{border-left-color:var(--green);}
+.kpi-card.red{border-left-color:var(--red);}
+.kpi-card.purple{border-left-color:var(--purple);}
+.kpi-label{font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.kpi-value{font-size:28px;font-weight:800;line-height:1.1;}
+.kpi-sub{font-size:12px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow);}
+.badge-red{background:var(--red-light);color:var(--red);}
+.badge-blue{background:var(--blue-light);color:var(--blue);}
+.badge-purple{background:var(--purple-light);color:var(--purple);}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:20px;}
+.chart-card{background:var(--bg-card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.chart-card.full{grid-column:1/-1;}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text);}
+.chart-sub{font-size:12px;color:var(--text-muted);margin-bottom:16px;}
+.tower-table{width:100%;border-collapse:collapse;font-size:13px;}
+.tower-table th{background:var(--bg-section);padding:10px 12px;text-align:left;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);border-bottom:2px solid var(--border);}
+.tower-table td{padding:10px 12px;border-bottom:1px solid var(--border);}
+.tower-table tr:last-child td{border-bottom:none;}
+.tower-table tr:hover td{background:var(--bg-section);}
+.tower-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+.prog-bar{background:var(--border);border-radius:99px;height:6px;width:100%;min-width:80px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;transition:width .5s;}
+.section-title{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title::before{content:'';width:4px;height:18px;background:var(--blue);border-radius:2px;display:inline-block;}
+.alert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px;}
+.alert-card{border-radius:var(--radius-sm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;border:1px solid transparent;}
+.alert-card.danger{background:var(--red-light);border-color:#fca5a5;color:var(--red);}
+.alert-card.warning{background:var(--yellow-light);border-color:#fcd34d;color:var(--yellow);}
+.alert-card.info{background:var(--blue-light);border-color:#93c5fd;color:var(--blue);}
+.alert-card.success{background:var(--green-light);border-color:#86efac;color:var(--green);}
+.alert-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.alert-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.alert-desc{font-size:12px;opacity:.85;line-height:1.5;}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:20px;}
+.plan-card{background:var(--bg-card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.plan-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.plan-badge{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+.plan-badge.daily{background:#dbeafe;color:#1d4ed8;}
+.plan-badge.weekly{background:#fef3c7;color:#b45309;}
+.plan-badge.monthly{background:#dcfce7;color:#15803d;}
+.plan-list{list-style:none;}
+.plan-list li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.plan-list li:last-child{border-bottom:none;}
+.plan-list li::before{content:'▸';color:var(--blue);font-size:12px;margin-top:1px;flex-shrink:0;}
+.suggest-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px;}
+.suggest-card{background:var(--bg-card);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow);border-top:3px solid var(--blue);}
+.suggest-num{font-size:22px;font-weight:900;color:var(--blue);margin-bottom:4px;}
+.suggest-title{font-size:13px;font-weight:700;margin-bottom:6px;}
+.suggest-desc{font-size:12px;color:var(--text-muted);line-height:1.6;}
+.daily-scroll{overflow-x:auto;}
+.daily-table{width:100%;border-collapse:collapse;font-size:13px;}
+.daily-table th{background:var(--bg-section);padding:9px 12px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);border-bottom:2px solid var(--border);white-space:nowrap;}
+.daily-table td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:center;font-variant-numeric:tabular-nums;}
+.daily-table tr:hover td{background:var(--bg-section);}
+.up{color:var(--green);}
+.down{color:var(--red);}
+.neutral{color:var(--text-muted);}
+.kpi-compare{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--border);}
+.cmp-chip{font-size:10px;border-radius:99px;padding:2px 8px;font-weight:700;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;border:1px solid transparent;}
+.cmp-dod{background:var(--bg-section);color:var(--text-muted);border-color:var(--border);}
+.cmp-wow{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+[data-theme="dark"] .cmp-wow{background:#1e3a6e;color:#93c5fd;border-color:#1e40af;}
+.cmp-mom{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+[data-theme="dark"] .cmp-mom{background:#14532d;color:#86efac;border-color:#166534;}
+.wow-na{color:var(--text-muted);font-size:11px;font-style:italic;}
+.wow-section{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;overflow-x:auto;}
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:20px;}
+.loading-overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
+.loading-box{background:var(--bg-card);border-radius:var(--radius);padding:32px 40px;text-align:center;box-shadow:var(--shadow-lg);}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media print{
+@page{size:A4 landscape;margin:8mm 12mm;}html{zoom:0.85;}
+*,*::before,*::after{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+body{background:var(--bg)!important;color:var(--text)!important;margin:0;}
+/* ── ซ่อน UI ── */
+.loading-overlay,.tab-bar,.btn,.btn-ghost,.btn-primary,.btn-success,.footer,.last-updated{display:none!important;}
+/* ── Header compact ── */
+.header{position:static!important;padding:8px 14px!important;margin-bottom:0!important;}
+.header-title{font-size:16px!important;}.header-sub{font-size:10px!important;}
+.logo-box{width:34px!important;height:34px!important;font-size:13px!important;}
+/* ── Show all tabs, page break between each tab ── */
+.tab-content{display:block!important;opacity:1!important;position:relative!important;pointer-events:auto!important;}
+.tab-content+.tab-content{page-break-before:always;break-before:page;}
+.main{padding:4px 8px 0!important;}
+/* ── Section titles — ต้องอยู่กับ content ถัดไป ── */
+.section-title{font-size:13px!important;margin-bottom:6px!important;page-break-after:avoid!important;break-after:avoid!important;}
+/* ── CHART GRIDS — ใช้ FLEX แทน GRID เพื่อให้ Chrome print จัดแถวได้ถูกต้อง ── */
+.charts-grid{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;align-items:stretch!important;}
+.charts-grid>*{flex:1 1 0!important;min-width:0!important;}
+.charts-grid>.chart-card.full{flex:0 0 100%!important;width:100%!important;}
+/* Tower donuts — 3 donuts ต่อแถว ── */
+#towerDonuts{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+#towerDonuts>.chart-card{flex:1 1 0!important;min-width:0!important;}
+/* ── OTHER GRIDS ── */
+.kpi-grid{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.kpi-grid>.kpi-card{flex:1 1 0!important;min-width:0!important;}
+.plan-grid{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.plan-grid>.plan-card{flex:1 1 0!important;min-width:0!important;}
+.suggest-grid{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.suggest-grid>.suggest-card{flex:1 1 30%!important;min-width:0!important;}
+.alert-grid{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.alert-grid>.alert-card{flex:1 1 0!important;min-width:0!important;}
+/* Chart wrapper heights in print */
+.chart-card .chart-wrapper,[style*='height:220px'],[style*='height:260px'],[style*='height:300px']{height:260px!important;}
+/* ── Cards ── ห้ามแตกกลางการ์ด ── */
+.chart-card{padding:10px 12px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.chart-title{font-size:12px!important;margin-bottom:2px!important;}
+.chart-sub{font-size:10px!important;margin-bottom:6px!important;}
+.kpi-card{padding:10px 12px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.kpi-value{font-size:20px!important;}.kpi-label{font-size:10px!important;margin-bottom:3px!important;}.kpi-sub{font-size:10px!important;}
+.kpi-compare{margin-top:4px!important;padding-top:4px!important;}
+.plan-card{padding:10px 12px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.plan-list li{font-size:11px!important;padding:3px 0!important;}
+.alert-card{padding:9px 10px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.alert-title{font-size:11px!important;}.alert-desc{font-size:10px!important;}
+.suggest-card{padding:10px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.suggest-num{font-size:18px!important;}.suggest-title{font-size:11px!important;}.suggest-desc{font-size:10px!important;}
+/* ── WoW section ── */
+.wow-section{padding:12px!important;margin-bottom:8px!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+/* ── Tables — แต่ละแถวห้ามแตก แต่ตารางยาวข้ามหน้าได้ ── */
+.tower-table th,.tower-table td{padding:6px 8px!important;font-size:11px!important;}
+.daily-table th,.daily-table td{padding:5px 7px!important;font-size:10px!important;}
+.tower-table thead,.daily-table thead{display:table-header-group;}
+.tower-table tr,.daily-table tr{page-break-inside:avoid!important;break-inside:avoid!important;}
+/* ── Standalone chart-cards (ไม่อยู่ใน charts-grid) ── */
+#tab-tower>.chart-card,#tab-analysis>.chart-card,#tab-action>.chart-card{page-break-inside:avoid!important;break-inside:avoid!important;margin-bottom:8px!important;}
+/* ── Canvas colors ── */
+canvas{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+/* ── Monthly table wrapper — keep in one page if possible ── */
+#tab-monthly>div:last-of-type{page-break-inside:avoid!important;break-inside:avoid!important;}
+/* ── Action KPI table wrapper ── */
+#tab-action>div[style*="overflow-x"]{page-break-inside:avoid!important;break-inside:avoid!important;}
+/* ── Remove excess padding on tab sections ── */
+.tab-content{padding-bottom:0!important;}
+/* ── Ensure charts fill their grid cells ── */
+.chart-card>div[style*="height"]{width:100%!important;}
+}
+@media(max-width:768px){.header{padding:12px 16px;}.header-right{gap:6px;}.main{padding:12px 12px 30px;}.tab-bar{margin:12px 12px 0;}.kpi-value{font-size:22px;}.charts-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo-box">JG</div>
+    <div>
+      <div class="header-title">🏢 Jmax Gateway Residence</div>
+      <div class="header-sub">Sales &amp; Occupancy Dashboard · Real-time Analytics</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">อัปเดต: --</span>
+    <button class="btn btn-ghost" onclick="refreshData()">🔄 Refresh</button>
+    <button class="btn btn-ghost" onclick="toggleDark()">🌙 Dark Mode</button>
+    <button class="btn btn-success" onclick="exportPDF()">📄 Export PDF</button>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="showTab('overview',this)">📊 ภาพรวม</button>
+  <button class="tab" onclick="showTab('tower',this)">🏗️ ราย Tower</button>
+  <button class="tab" onclick="showTab('daily',this)">📅 รายวัน</button>
+  <button class="tab" onclick="showTab('monthly',this)">📆 รายเดือน</button>
+  <button class="tab" onclick="showTab('analysis',this)">🔍 วิเคราะห์</button>
+  <button class="tab" onclick="showTab('action',this)">📋 Action Plan</button>
+</div>
+
+<main class="main">
+
+<!-- OVERVIEW -->
+<div class="tab-content active" id="tab-overview">
+  <div class="kpi-grid" id="kpiGrid"></div>
+  <div class="charts-grid charts-grid-3">
+    <div class="chart-card"><div class="chart-title">สัดส่วนสถานะห้อง — รวมทุก Tower</div><div class="chart-sub">ณ วันที่ล่าสุด</div><div style="height:260px"><canvas id="donutAll"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">เปรียบเทียบสถานะห้องรายTower</div><div class="chart-sub">Available vs Occupied vs Not Ready</div><div style="height:260px"><canvas id="barTower"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Occupancy Rate รายTower (%)</div><div class="chart-sub">สัดส่วนห้องมีผู้เช่าเทียบยูนิตพร้อมปล่อยเช่า</div><div style="height:260px"><canvas id="barOccRate"></canvas></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card full"><div class="chart-title">แนวโน้มห้องที่มีผู้เช่า — รายวัน (พฤษภาคม 2026)</div><div class="chart-sub">จำนวนห้อง Occupied แต่ละ Tower ตามวัน</div><div style="height:240px"><canvas id="lineTrend"></canvas></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card full"><div class="chart-title">รายได้ประมาณการ (Estimated Monthly Revenue) รายวัน</div><div class="chart-sub">มูลค่ารายเดือนโดยประมาณ (บาท) รวมทุก Tower</div><div style="height:200px"><canvas id="lineRevenue"></canvas></div></div>
+  </div>
+</div>
+
+<!-- TOWER -->
+<div class="tab-content" id="tab-tower">
+  <div class="section-title">สถานะห้องรายTower — ข้อมูลล่าสุด</div>
+  <div style="overflow-x:auto;background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;">
+    <table class="tower-table"><thead><tr><th>Tower</th><th class="num">ห้องทั้งหมด</th><th class="num">ห้องว่าง</th><th style="min-width:110px">% ว่าง</th><th class="num">มีผู้เช่า</th><th style="min-width:110px">% มีผู้เช่า</th><th class="num">ไม่พร้อมเช่า</th><th style="min-width:110px">% ไม่พร้อม</th><th class="num">รายได้/เดือน (฿)</th><th class="num" title="เทียบ 7 วันก่อน">WoW (Occ.)</th><th class="num" title="เทียบ 30 วันก่อน">MoM (Occ.)</th></tr></thead>
+    <tbody id="towerTableBody"></tbody></table>
+  </div>
+  <div class="section-title">สัดส่วนสถานะห้องแต่ละ Tower</div>
+  <div class="charts-grid" id="towerDonuts"></div>
+  <div class="chart-card" style="margin-bottom:20px"><div class="chart-title">Revenue per Occupied Room — รายTower</div><div class="chart-sub">รายได้เฉลี่ยต่อห้องที่มีผู้เช่า (บาท/เดือน)</div><div style="height:240px"><canvas id="barRevPerRoom"></canvas></div></div>
+</div>
+
+<!-- DAILY -->
+<div class="tab-content" id="tab-daily">
+  <div class="section-title">ข้อมูลรายวัน — พฤษภาคม 2026</div>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-primary" style="font-size:12px" onclick="showDailyBuilding('All Building')">รวมทุก Tower</button>
+    <button class="btn" style="font-size:12px;background:var(--bg-section);color:var(--text)" onclick="showDailyBuilding('Building A')">Building A</button>
+    <button class="btn" style="font-size:12px;background:var(--bg-section);color:var(--text)" onclick="showDailyBuilding('Building B')">Building B</button>
+    <button class="btn" style="font-size:12px;background:var(--bg-section);color:var(--text)" onclick="showDailyBuilding('Building C')">Building C</button>
+  </div>
+  <div style="background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;">
+    <div class="daily-scroll">
+      <table class="daily-table"><thead><tr><th>วันที่</th><th>ยูนิตทั้งหมด</th><th>ห้องว่าง</th><th>% ว่าง</th><th>มีผู้เช่า</th><th>% มีผู้เช่า</th><th>ไม่พร้อมเช่า</th><th>% ไม่พร้อม</th><th>Est. Revenue (฿)</th><th title="เทียบวันก่อนหน้า">DoD (Occ.)</th><th title="เทียบ 7 วันก่อน">WoW (Occ.)</th><th title="เทียบ 30 วันก่อน">MoM (Occ.)</th></tr></thead>
+      <tbody id="dailyTableBody"></tbody></table>
+    </div>
+  </div>
+  <div id="dailyWowBox" style="margin-bottom:20px"></div>
+  <div class="charts-grid"><div class="chart-card full"><div class="chart-title" id="dailyChartTitle">แนวโน้มรายวัน — รวมทุก Tower</div><div class="chart-sub">ห้องว่าง / มีผู้เช่า / ไม่พร้อมเช่า ตามวัน</div><div style="height:260px"><canvas id="dailyStackedChart"></canvas></div></div></div>
+</div>
+
+<!-- MONTHLY -->
+<div class="tab-content" id="tab-monthly">
+  <div class="section-title">📆 สรุปรายเดือน — ทุก Tower</div>
+  <div class="kpi-grid" id="monthlyKpiGrid"></div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Occupancy Rate รายเดือน (%)</div><div class="chart-sub">เปรียบเทียบทุก Tower รายเดือน</div><div style="height:260px"><canvas id="monthlyOccChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Est. Revenue รายเดือน (฿)</div><div class="chart-sub">รายได้ประมาณการรวมทุก Tower</div><div style="height:260px"><canvas id="monthlyRevChart"></canvas></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card full"><div class="chart-title">Avg. Occupied Rooms รายเดือน — แต่ละ Tower</div><div class="chart-sub">ค่าเฉลี่ยห้องมีผู้เช่าต่อวันในแต่ละเดือน</div><div style="height:220px"><canvas id="monthlyAvgOccChart"></canvas></div></div>
+  </div>
+  <div class="section-title">ตารางสรุปรายเดือน — เปรียบเทียบ MoM</div>
+  <div style="background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;overflow-x:auto;">
+    <table class="tower-table">
+      <thead><tr>
+        <th>เดือน</th><th>Tower</th>
+        <th class="num">ยูนิตทั้งหมด</th>
+        <th class="num">Occupied (ล่าสุด)</th>
+        <th class="num">% มีผู้เช่า</th>
+        <th class="num">Avg Occ./วัน</th>
+        <th class="num">Available</th>
+        <th class="num">Not Ready</th>
+        <th class="num">Est. Revenue (฿)</th>
+        <th class="num">MoM (Occ.)</th>
+      </tr></thead>
+      <tbody id="monthlyTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="tab-content" id="tab-analysis">
+  <div class="section-title">⚠️ แจ้งเตือนเร่งด่วน</div>
+  <div class="alert-grid">
+    <div class="alert-card danger"><span class="alert-icon">🚨</span><div><div class="alert-title">Not Ready For Rent สูงมาก — Building A (82.7%)</div><div class="alert-desc">ห้อง 62 จาก 75 ยูนิตใน Building A ยังไม่พร้อมปล่อยเช่า ควรเร่งตรวจสอบและเตรียมความพร้อมโดยด่วน</div></div></div>
+    <div class="alert-card danger"><span class="alert-icon">🚨</span><div><div class="alert-title">Occupancy Rate ต่ำ — ภาพรวม 27.4%</div><div class="alert-desc">ห้องที่มีผู้เช่าเพียง 54 จาก 197 ยูนิต (27.4%) ต่ำกว่าเป้าหมายมาตรฐานอุตสาหกรรม (70–80%)</div></div></div>
+    <div class="alert-card warning"><span class="alert-icon">⚠️</span><div><div class="alert-title">Building A Occupancy ต่ำมาก (16%)</div><div class="alert-desc">Building A มีผู้เช่าเพียง 12 จาก 75 ยูนิต (16%) ต่ำที่สุดใน 3 Tower</div></div></div>
+    <div class="alert-card warning"><span class="alert-icon">⚠️</span><div><div class="alert-title">วันที่ 5 พ.ค. ห้องว่างลด 28% (32→23 ห้อง)</div><div class="alert-desc">ห้องว่างลดลงจาก 32 เป็น 23 ห้องในวันเดียว (มีผู้เช่าเพิ่ม 9 ห้อง) ควรตรวจสอบข้อมูล</div></div></div>
+    <div class="alert-card info"><span class="alert-icon">📈</span><div><div class="alert-title">Building C มีโอกาสสูง — Available 29.3%</div><div class="alert-desc">Building C มีห้องว่างพร้อมเช่า 22 จาก 75 ยูนิต ควรเน้น Marketing ดึง Lead มาที่ Building C ก่อน</div></div></div>
+    <div class="alert-card success"><span class="alert-icon">✅</span><div><div class="alert-title">Building B Occupancy ดีที่สุด (53.2%)</div><div class="alert-desc">ควรศึกษา Best Practice จาก Building B เพื่อนำไปใช้กับ Tower อื่น</div></div></div>
+  </div>
+  <div class="section-title">📆 เปรียบเทียบ WoW / MoM — รวมทุก Tower</div>
+  <div class="wow-section" id="wowSection"></div>
+  <div class="section-title">📊 เปรียบเทียบ Benchmark อุตสาหกรรม</div>
+  <div style="background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;overflow-x:auto;">
+    <table class="tower-table"><thead><tr><th>Metric</th><th>All Buildings</th><th>Building A</th><th>Building B</th><th>Building C</th><th>Industry Benchmark</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Occupancy Rate</td><td class="num">27.4%</td><td class="num">16.0%</td><td class="num">53.2%</td><td class="num">24.0%</td><td class="num">70–80%</td><td><span class="badge badge-red">ต่ำมาก</span></td></tr>
+      <tr><td>Vacancy Rate (พร้อมเช่า)</td><td class="num">12.2%</td><td class="num">1.3%</td><td class="num">2.1%</td><td class="num">29.3%</td><td class="num">10–20%</td><td><span class="badge badge-green">ปกติ</span></td></tr>
+      <tr><td>Not Ready For Rent</td><td class="num">60.4%</td><td class="num">82.7%</td><td class="num">46.8%</td><td class="num">46.7%</td><td class="num">&lt;10%</td><td><span class="badge badge-red">สูงมาก</span></td></tr>
+      <tr><td>Rev/Occupied Room (฿/เดือน)</td><td class="num">4,296</td><td class="num">4,583</td><td class="num">4,563</td><td class="num">3,750</td><td class="num">4,000–6,000</td><td><span class="badge badge-yellow">พอใช้</span></td></tr>
+    </tbody></table>
+  </div>
+  <div class="section-title">🔍 Occupancy Rate เปรียบเทียบทุก Tower</div>
+  <div class="chart-card" style="margin-bottom:20px"><div class="chart-title">Occupancy Rate vs Target 70%</div><div class="chart-sub">เปรียบเทียบกับ Industry Standard</div><div style="height:220px"><canvas id="barOccAll"></canvas></div></div>
+  <div class="section-title">💡 แนวทางเพิ่มยอดผู้เช่า</div>
+  <div class="suggest-grid">
+    <div class="suggest-card"><div class="suggest-num">01</div><div class="suggest-title">เร่งเตรียมห้อง Not Ready ให้พร้อมเช่า</div><div class="suggest-desc">ห้อง Not Ready 119 ห้อง = Lost Revenue ทันที หากเตรียมพร้อมได้ 50% จะเพิ่มรายได้ ~267,750 บาท/เดือน ควรตั้ง Task Force โดยด่วน</div></div>
+    <div class="suggest-card" style="border-top-color:var(--green)"><div class="suggest-num" style="color:var(--green)">02</div><div class="suggest-title">ลด Rental Rate ชั่วคราว + Incentive</div><div class="suggest-desc">เสนอ "ราคาพิเศษช่วงเปิดตัว" สำหรับ Building A เช่น ฟรีเดือนแรก หรือลดค่าเช่า 10–15% สำหรับสัญญา 6–12 เดือน</div></div>
+    <div class="suggest-card" style="border-top-color:var(--yellow)"><div class="suggest-num" style="color:var(--yellow)">03</div><div class="suggest-title">Digital Marketing — Social + Online Listings</div><div class="suggest-desc">ลงประกาศใน Airbnb, Booking.com, Facebook Marketplace, DDproperty, Hipflat โดยเน้นภาพถ่ายคุณภาพสูงและ Virtual Tour</div></div>
+    <div class="suggest-card" style="border-top-color:var(--purple)"><div class="suggest-num" style="color:var(--purple)">04</div><div class="suggest-title">B2B Partnership — บริษัท/โรงงาน/โรงเรียน</div><div class="suggest-desc">ติดต่อบริษัทในพื้นที่ให้เช่าเป็น Staff Housing แบบ Block Lock-in รายได้ระยะยาว ลด Vacancy Risk</div></div>
+    <div class="suggest-card" style="border-top-color:var(--red)"><div class="suggest-num" style="color:var(--red)">05</div><div class="suggest-title">Referral Program — ผู้เช่าแนะนำผู้เช่า</div><div class="suggest-desc">มอบส่วนลดค่าเช่า 500–1,000 บาทให้ผู้เช่าที่แนะนำผู้เช่าใหม่สำเร็จ ROI สูงเพราะต้นทุนต่ำ</div></div>
+    <div class="suggest-card" style="border-top-color:var(--teal)"><div class="suggest-num" style="color:var(--teal)">06</div><div class="suggest-title">Dynamic Pricing Strategy</div><div class="suggest-desc">ทบทวนราคา Tier 1 (2,700 บาท) สำหรับห้องขนาดเล็ก/ชั้นต่ำ เพื่อเร่ง Fill Rate และ Upsell เมื่อ Occupancy ดีขึ้น</div></div>
+  </div>
+</div>
+
+<!-- ACTION PLAN -->
+<div class="tab-content" id="tab-action">
+  <div class="section-title">📋 Action Plan — รายวัน / รายสัปดาห์ / รายเดือน</div>
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="plan-header"><span class="plan-badge daily">📅 รายวัน</span></div>
+      <ul class="plan-list">
+        <li>เช็ค Dashboard ทุกเช้า เปรียบเทียบยอด Occupied vs เมื่อวาน</li>
+        <li>อัปเดตสถานะห้อง Not Ready ในระบบทุกวัน</li>
+        <li>ตอบ Inquiry จาก Online Channels ภายใน 1 ชั่วโมง</li>
+        <li>ตรวจสอบสัญญาที่ใกล้หมดอายุ (30 วัน) และติดต่อต่อสัญญา</li>
+        <li>บันทึก Lead ใหม่ใน CRM และติดตาม Follow-up</li>
+        <li>รายงาน Daily Occupancy ให้ Team ผ่าน LINE/Slack</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header"><span class="plan-badge weekly">📆 รายสัปดาห์</span></div>
+      <ul class="plan-list">
+        <li>ประชุม Sales Team ทบทวน Occupancy Trend ทุกวันจันทร์</li>
+        <li>อัปเดต Listing บน DDproperty, Hipflat, Facebook Marketplace</li>
+        <li>ตรวจห้อง Not Ready ที่เตรียมแล้ว Approve ให้พร้อมปล่อยเช่า</li>
+        <li>วิเคราะห์ห้องว่างที่ค้างนาน &gt;14 วัน และทบทวนราคา</li>
+        <li>สรุปยอด Inquiry / Viewing / Closing Rate รายสัปดาห์</li>
+        <li>ติดต่อ B2B Partners หรือ Agent ใหม่ อย่างน้อย 3 ราย/สัปดาห์</li>
+        <li>โพสต์ Content Marketing บน Social Media</li>
+      </ul>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header"><span class="plan-badge monthly">📊 รายเดือน</span></div>
+      <ul class="plan-list">
+        <li>สรุป Monthly P&amp;L: Revenue, Vacancy Cost, Not Ready Cost</li>
+        <li>ตั้งเป้า Occupancy Rate เดือนถัดไป (Target: +5% MoM)</li>
+        <li>ประเมิน Pricing Strategy ทบทวน Tier ราคาตามตลาด</li>
+        <li>เปรียบเทียบ Revenue ทุก Tower แบบ MoM</li>
+        <li>สำรวจ Tenant Satisfaction เพื่อลด Churn Rate</li>
+        <li>ตรวจสอบ &amp; ซ่อมแซม Common Area</li>
+        <li>จัดทำ Sales Forecast เดือนถัดไป (Best/Base/Worst)</li>
+        <li>Review KPI vs Target และปรับ Strategy</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section-title">🎯 KPI Targets</div>
+  <div style="background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;overflow-x:auto;">
+    <table class="tower-table"><thead><tr><th>KPI</th><th>ปัจจุบัน (6 พ.ค.)</th><th>Target End May</th><th>Target June</th><th>Target Q3</th></tr></thead>
+    <tbody>
+      <tr><td>Overall Occupancy Rate</td><td><span class="badge badge-red">27.4%</span></td><td>35%</td><td>45%</td><td>65%</td></tr>
+      <tr><td>Building A Occupancy</td><td><span class="badge badge-red">16%</span></td><td>25%</td><td>35%</td><td>55%</td></tr>
+      <tr><td>Building B Occupancy</td><td><span class="badge badge-yellow">53.2%</span></td><td>60%</td><td>70%</td><td>80%</td></tr>
+      <tr><td>Building C Occupancy</td><td><span class="badge badge-red">24%</span></td><td>35%</td><td>45%</td><td>60%</td></tr>
+      <tr><td>Not Ready For Rent %</td><td><span class="badge badge-red">60.4%</span></td><td>50%</td><td>35%</td><td>15%</td></tr>
+      <tr><td>Est. Monthly Revenue (฿)</td><td><span class="badge badge-yellow">232,000</span></td><td>308,000</td><td>399,000</td><td>575,000</td></tr>
+    </tbody></table>
+  </div>
+  <div class="chart-card"><div class="chart-title">Revenue Projection vs Target (฿/เดือน)</div><div class="chart-sub">ประมาณการรายได้เทียบกับ Target</div><div style="height:220px"><canvas id="barProjection"></canvas></div></div>
+</div>
+
+</main>
+<footer class="footer">
+  <div>Jmax Gateway Residence — Sales Dashboard | Powered by Jmax Corporation</div>
+  <div style="margin-top:4px" id="footerUpdated"></div>
+</footer>
+
+<script>
+const D={buildings:{'All Building':{daily:[{date:'1/5/2026',total:197,value:880500,available:31,availValue:139500,occupied:47,occValue:205500,notReady:119,nrValue:535500},{date:'2/5/2026',total:197,value:880500,available:31,availValue:139500,occupied:47,occValue:205500,notReady:119,nrValue:535500},{date:'3/5/2026',total:197,value:880500,available:32,availValue:144000,occupied:46,occValue:201000,notReady:119,nrValue:535500},{date:'4/5/2026',total:197,value:880500,available:32,availValue:144000,occupied:46,occValue:201000,notReady:119,nrValue:535500},{date:'5/5/2026',total:197,value:876000,available:23,availValue:103500,occupied:55,occValue:237000,notReady:119,nrValue:535500},{date:'6/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'7/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'8/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'9/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'10/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'11/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'12/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'13/5/2026',total:197,value:875500,available:24,availValue:108000,occupied:54,occValue:232000,notReady:119,nrValue:535500},{date:'14/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000}]},'Building A':{daily:[{date:'1/5/2026',total:75,value:338500,available:0,availValue:0,occupied:13,occValue:59500,notReady:62,nrValue:279000},{date:'2/5/2026',total:75,value:338500,available:0,availValue:0,occupied:13,occValue:59500,notReady:62,nrValue:279000},{date:'3/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'4/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'5/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'6/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'7/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'8/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'9/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'10/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'11/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'12/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'13/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000},{date:'14/5/2026',total:75,value:338500,available:1,availValue:4500,occupied:12,occValue:55000,notReady:62,nrValue:279000}]},'Building B':{daily:[{date:'1/5/2026',total:22,value:17600,available:16,availValue:12800,occupied:0,occValue:0,notReady:6,nrValue:4800},{date:'2/5/2026',total:22,value:17400,available:15,availValue:12000,occupied:1,occValue:600,notReady:6,nrValue:4800},{date:'3/5/2026',total:22,value:15000,available:9,availValue:7200,occupied:7,occValue:3000,notReady:6,nrValue:4800},{date:'4/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'5/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'6/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'7/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'8/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'9/5/2026',total:22,value:15200,available:9,availValue:7200,occupied:7,occValue:3200,notReady:6,nrValue:4800},{date:'10/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'11/5/2026',total:22,value:15200,available:10,availValue:8000,occupied:6,occValue:2400,notReady:6,nrValue:4800},{date:'12/5/2026',total:22,value:15200,available:9,availValue:7200,occupied:7,occValue:3200,notReady:6,nrValue:4800},{date:'13/5/2026',total:22,value:15200,available:5,availValue:4000,occupied:11,occValue:6400,notReady:6,nrValue:4800}]},'Building C':{daily:[{date:'1/5/2026',total:100,value:524400,available:15,availValue:126700,occupied:34,occValue:146000,notReady:51,nrValue:251700},{date:'2/5/2026',total:100,value:524600,available:16,availValue:127500,occupied:33,occValue:145400,notReady:51,nrValue:251700},{date:'3/5/2026',total:100,value:527000,available:22,availValue:132300,occupied:27,occValue:143000,notReady:51,nrValue:251700},{date:'4/5/2026',total:100,value:526800,available:21,availValue:131500,occupied:28,occValue:143600,notReady:51,nrValue:251700},{date:'5/5/2026',total:100,value:522300,available:12,availValue:91000,occupied:37,occValue:179600,notReady:51,nrValue:251700},{date:'6/5/2026',total:100,value:521800,available:13,availValue:95500,occupied:36,occValue:174600,notReady:51,nrValue:251700},{date:'7/5/2026',total:100,value:521800,available:13,availValue:95500,occupied:36,occValue:174600,notReady:51,nrValue:251700},{date:'8/5/2026',total:100,value:521800,available:13,availValue:95500,occupied:36,occValue:174600,notReady:51,nrValue:251700},{date:'9/5/2026',total:100,value:521800,available:14,availValue:96300,occupied:35,occValue:173800,notReady:51,nrValue:251700},{date:'10/5/2026',total:100,value:521800,available:13,availValue:95500,occupied:36,occValue:174600,notReady:51,nrValue:251700},{date:'11/5/2026',total:100,value:521800,available:13,availValue:95500,occupied:36,occValue:174600,notReady:51,nrValue:251700},{date:'12/5/2026',total:100,value:521800,available:14,availValue:96300,occupied:35,occValue:173800,notReady:51,nrValue:251700},{date:'13/5/2026',total:100,value:521800,available:18,availValue:99500,occupied:31,occValue:170600,notReady:51,nrValue:251700}]}}};
+const C={av:'#3b82f6',oc:'#16a34a',nr:'#ef4444',a:'#6366f1',b:'#f59e0b',c:'#06b6d4',all:'#1d4ed8'};
+const FILE_ID='1GiH83vh8JMiZy6nolVXfD5xLZvDAE28YULz3fB-hRFM';
+let curBld='All Building',charts={},PRINT_H_SCALE=1;
+function fmt(n){return n?.toLocaleString('th-TH',{maximumFractionDigits:0})||'0';}
+function pct(n,d){return d>0?((n/d)*100).toFixed(1)+'%':'0%';}
+function pn(n,d){return d>0?(n/d)*100:0;}
+function lat(b){const x=D.buildings[b]?.daily;return x?x[x.length-1]:null;}
+/* ── WoW / MoM helpers ── */
+function addDays(ds,n){const pts=ds.split('/');if(pts.length!==3)return ds;const dt=new Date(parseInt(pts[2]),parseInt(pts[1])-1,parseInt(pts[0]));dt.setDate(dt.getDate()+n);return`${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;}
+function getByDate(bld,ds){return(D.buildings[bld]?.daily||[]).find(x=>x.date===ds)||null;}
+function wowD(bld,ds){return getByDate(bld,addDays(ds,-7));}
+function momD(bld,ds){return getByDate(bld,addDays(ds,-30));}
+function chgCell(curr,prev,fmtFn=v=>String(v)){if(prev===null||prev===undefined)return'<span class="neutral">—</span>';const diff=curr-prev;if(diff===0)return'<span class="neutral">±0</span>';const s=diff>0?'▲':'▼';const cls=diff>0?'up':'down';const p=prev!==0?` (${Math.abs(diff/prev*100).toFixed(1)}%)`:'';return`<span class="${cls}">${s}${fmtFn(Math.abs(diff))}${p}</span>`;}
+function cmpChip(label,curr,prev,fmtFn=v=>String(v),cls='cmp-dod'){const inner=chgCell(curr,prev,fmtFn);return`<span class="cmp-chip ${cls}">${label}: ${inner}</span>`;}
+function occRate(d){return d&&d.total>0?parseFloat((d.occupied/d.total*100).toFixed(1)):0;}
+function dark(){return document.documentElement.getAttribute('data-theme')==='dark';}
+function gc(){return dark()?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)';}
+function tc(){return dark()?'#94a3b8':'#64748b';}
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function renderKPIs(){
+  const data=D.buildings['All Building']?.daily||[];
+  const d=data[data.length-1];if(!d)return;
+  const prev=data.length>1?data[data.length-2]:null;
+  const wow=wowD('All Building',d.date);
+  const mom=momD('All Building',d.date);
+  const la=lat('Building A'),lb=lat('Building B'),lc=lat('Building C');
+  const fmtB=v=>v+' ห้อง';const fmtR=v=>'฿'+fmt(v);
+  function cmpRow(curr,prevV,wowV,momV,fn=v=>String(v)){
+    return`<div class="kpi-compare">${cmpChip('DoD',curr,prevV,fn,'cmp-dod')}${cmpChip('WoW',curr,wowV,fn,'cmp-wow')}${cmpChip('MoM',curr,momV,fn,'cmp-mom')}</div>`;
+  }
+  document.getElementById('kpiGrid').innerHTML=[
+    {l:'ยูนิตทั้งหมด',v:fmt(d.total),s:`A:${la?.total||0} | B:${lb?.total||0} | C:${lc?.total||0}`,cl:'blue',b:null,cmp:''},
+    {l:'ห้องว่าง (Available)',v:fmt(d.available),s:pct(d.available,d.total)+' ของทั้งหมด',cl:'blue',b:{t:pct(d.available,d.total),c:'badge-blue'},cmp:cmpRow(d.available,prev?.available,wow?.available,mom?.available,fmtB)},
+    {l:'มีผู้เช่า (Occupied)',v:fmt(d.occupied),s:'รายได้ ~฿'+fmt(d.occValue)+'/เดือน',cl:'green',b:{t:pct(d.occupied,d.total),c:'badge-green'},cmp:cmpRow(d.occupied,prev?.occupied,wow?.occupied,mom?.occupied,fmtB)},
+    {l:'ไม่พร้อมเช่า (Not Ready)',v:fmt(d.notReady),s:'Lost Revenue ~฿'+fmt(d.notReady*4500),cl:'red',b:{t:pct(d.notReady,d.total),c:'badge-red'},cmp:cmpRow(d.notReady,prev?.notReady,wow?.notReady,mom?.notReady,fmtB)},
+    {l:'Est. Monthly Revenue',v:'฿'+fmt(d.occValue),s:'Full Potential: ฿'+fmt(d.total*4500),cl:'purple',b:{t:pct(d.occupied,d.total),c:'badge-purple'},cmp:cmpRow(d.occValue,prev?.occValue,wow?.occValue,mom?.occValue,fmtR)}
+  ].map(x=>`<div class="kpi-card ${x.cl}"><div class="kpi-label">${x.l}</div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.b?`<span class="badge ${x.b.c}">${x.b.t}</span>`:''}<span>${x.s}</span></div>${x.cmp}</div>`).join('');
+}
+function renderDonutAll(){
+  dc('donutAll');const d=lat('All Building');
+  charts['donutAll']=new Chart(document.getElementById('donutAll'),{type:'doughnut',data:{labels:['ว่าง','มีผู้เช่า','ไม่พร้อม'],datasets:[{data:[d.available,d.occupied,d.notReady],backgroundColor:[C.av,C.oc,C.nr],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:tc(),font:{size:12},padding:14}}}}});
+}
+function renderBarTower(){
+  dc('barTower');const bs=['Building A','Building B','Building C'];
+  charts['barTower']=new Chart(document.getElementById('barTower'),{type:'bar',data:{labels:bs,datasets:[{label:'ว่าง',data:bs.map(b=>lat(b)?.available||0),backgroundColor:C.av+'cc'},{label:'มีผู้เช่า',data:bs.map(b=>lat(b)?.occupied||0),backgroundColor:C.oc+'cc'},{label:'ไม่พร้อม',data:bs.map(b=>lat(b)?.notReady||0),backgroundColor:C.nr+'cc'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{stacked:true,ticks:{color:tc()},grid:{color:gc()}},y:{stacked:true,ticks:{color:tc()},grid:{color:gc()}}}}});
+}
+function renderBarOccRate(){
+  dc('barOccRate');const bs=['All Building','Building A','Building B','Building C'],lb=['รวมทุก Tower','Building A','Building B','Building C'];
+  const rates=bs.map(b=>{const d=lat(b);if(!d)return 0;const r=d.available+d.occupied;return r>0?parseFloat(((d.occupied/r)*100).toFixed(1)):0;});
+  charts['barOccRate']=new Chart(document.getElementById('barOccRate'),{type:'bar',data:{labels:lb,datasets:[{label:'Occupancy Rate (%)',data:rates,backgroundColor:[C.all,C.a,C.b,C.c].map(x=>x+'cc'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{min:0,max:100,ticks:{color:tc(),callback:v=>v+'%'},grid:{color:gc()}}}}});
+}
+function renderLineTrend(){
+  dc('lineTrend');const bs=['All Building','Building A','Building B','Building C'];const dates=D.buildings['All Building'].daily.map(d=>d.date);
+  const ds=bs.map((b,i)=>({label:b==='All Building'?'รวมทุก Tower':b,data:D.buildings[b].daily.map(d=>d.occupied),borderColor:[C.all,C.a,C.b,C.c][i],backgroundColor:[C.all,C.a,C.b,C.c][i]+'22',fill:b==='All Building',tension:0.3,pointRadius:5,borderWidth:2.5}));
+  charts['lineTrend']=new Chart(document.getElementById('lineTrend'),{type:'line',data:{labels:dates,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc()},grid:{color:gc()}}}}});
+}
+function renderLineRevenue(){
+  dc('lineRevenue');const data=D.buildings['All Building'].daily;
+  charts['lineRevenue']=new Chart(document.getElementById('lineRevenue'),{type:'line',data:{labels:data.map(d=>d.date),datasets:[{label:'Est. Revenue (฿)',data:data.map(d=>d.occValue),borderColor:C.oc,backgroundColor:C.oc+'22',fill:true,tension:0.3,pointRadius:5,borderWidth:2.5},{label:'Full Potential (฿)',data:data.map(d=>d.value),borderColor:C.av,backgroundColor:'transparent',borderDash:[6,4],tension:0.3,pointRadius:3,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>'฿'+fmt(v)},grid:{color:gc()}}}}});
+}
+function renderTowerTable(){
+  const bs=['All Building','Building A','Building B','Building C'],lb=['รวมทุก Tower','Building A','Building B','Building C'];
+  document.getElementById('towerTableBody').innerHTML=bs.map((b,i)=>{
+    const d=lat(b);if(!d)return'';
+    const wow=wowD(b,d.date);const mom=momD(b,d.date);
+    return`<tr><td><strong>${lb[i]}</strong></td><td class="num">${fmt(d.total)}</td><td class="num">${fmt(d.available)}</td><td><div class="prog-bar"><div class="prog-fill" style="width:${pn(d.available,d.total)}%;background:${C.av}"></div></div><small>${pct(d.available,d.total)}</small></td><td class="num">${fmt(d.occupied)}</td><td><div class="prog-bar"><div class="prog-fill" style="width:${pn(d.occupied,d.total)}%;background:${C.oc}"></div></div><small>${pct(d.occupied,d.total)}</small></td><td class="num">${fmt(d.notReady)}</td><td><div class="prog-bar"><div class="prog-fill" style="width:${pn(d.notReady,d.total)}%;background:${C.nr}"></div></div><small>${pct(d.notReady,d.total)}</small></td><td class="num">฿${fmt(d.occValue)}</td><td class="num">${chgCell(d.occupied,wow?.occupied,v=>v+' ห้อง')}</td><td class="num">${chgCell(d.occupied,mom?.occupied,v=>v+' ห้อง')}</td></tr>`;
+  }).join('');
+}
+function renderTowerDonuts(){
+  const bs=['Building A','Building B','Building C'];
+  const dh=Math.round(200*PRINT_H_SCALE);
+  document.getElementById('towerDonuts').innerHTML=bs.map(b=>`<div class="chart-card"><div class="chart-title">${b}</div><div class="chart-sub">${fmt(lat(b)?.total||0)} ยูนิต | Occ. ${pct(lat(b)?.occupied||0,lat(b)?.total||1)}</div><div style="height:${dh}px"><canvas id="dn_${b.replace(' ','')}"></canvas></div></div>`).join('');
+  bs.forEach(b=>{const d=lat(b);if(!d)return;const id='dn_'+b.replace(' ','');dc(id);charts[id]=new Chart(document.getElementById(id),{type:'doughnut',data:{labels:['ว่าง','มีผู้เช่า','ไม่พร้อม'],datasets:[{data:[d.available,d.occupied,d.notReady],backgroundColor:[C.av,C.oc,C.nr],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tc(),font:{size:11},padding:8}}}}});});
+}
+function renderBarRevPerRoom(){
+  dc('barRevPerRoom');const bs=['Building A','Building B','Building C'];
+  charts['barRevPerRoom']=new Chart(document.getElementById('barRevPerRoom'),{type:'bar',data:{labels:bs,datasets:[{label:'฿/ห้อง/เดือน',data:bs.map(b=>{const d=lat(b);return d&&d.occupied>0?Math.round(d.occValue/d.occupied):0;}),backgroundColor:[C.a,C.b,C.c].map(x=>x+'cc'),borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>'฿'+fmt(v)},grid:{color:gc()}}}}});
+}
+function showDailyBuilding(b){curBld=b;document.getElementById('dailyChartTitle').textContent='แนวโน้มรายวัน — '+(b==='All Building'?'รวมทุก Tower':b);renderDailyTable();renderDailyChart();}
+function renderDailyTable(){
+  const data=D.buildings[curBld]?.daily||[];
+  const totalDays=data.length;
+  document.getElementById('dailyTableBody').innerHTML=data.map((d,i)=>{
+    const prev=i>0?data[i-1]:null;
+    const wow=wowD(curBld,d.date);
+    const mom=momD(curBld,d.date);
+    const bc=d.occupied/d.total>=0.5?'badge-green':d.occupied/d.total>=0.3?'badge-yellow':'badge-red';
+    return`<tr><td><strong>${d.date}</strong></td><td>${fmt(d.total)}</td><td>${fmt(d.available)}</td><td>${pct(d.available,d.total)}</td><td><strong>${fmt(d.occupied)}</strong></td><td><span class="badge ${bc}">${pct(d.occupied,d.total)}</span></td><td>${fmt(d.notReady)}</td><td>${pct(d.notReady,d.total)}</td><td>฿${fmt(d.occValue)}</td><td>${chgCell(d.occupied,prev?.occupied,v=>v+' ห้อง')}</td><td>${chgCell(d.occupied,wow?.occupied,v=>v+' ห้อง')}</td><td>${chgCell(d.occupied,mom?.occupied,v=>v+' ห้อง')}</td></tr>`;
+  }).join('');
+  /* Daily WoW info box */
+  const latest=data[data.length-1];
+  const wowLatest=latest?wowD(curBld,latest.date):null;
+  const momLatest=latest?momD(curBld,latest.date):null;
+  const box=document.getElementById('dailyWowBox');if(!box)return;
+  let parts=[];
+  if(!wowLatest)parts.push(`<span>📅 <strong>WoW</strong>: ต้องการข้อมูลอย่างน้อย 7 วัน (ปัจจุบันมี ${totalDays} วัน)</span>`);
+  if(!momLatest)parts.push(`<span>📊 <strong>MoM</strong>: ต้องการข้อมูลอย่างน้อย 30 วัน (ปัจจุบันมี ${totalDays} วัน)</span>`);
+  box.innerHTML=parts.length>0?`<div class="alert-card info" style="flex-direction:column;gap:6px"><span class="alert-icon" style="display:none"></span><div><div class="alert-title" style="margin-bottom:6px">ℹ️ สถานะข้อมูล WoW / MoM</div><div class="alert-desc" style="display:flex;flex-direction:column;gap:4px">${parts.join('')}<span style="margin-top:2px;color:var(--text-muted)">คอลัมน์ WoW และ MoM จะแสดงข้อมูลอัตโนมัติเมื่อมีข้อมูลเพิ่มขึ้น</span></div></div></div>`:'';
+}
+function renderDailyChart(){
+  dc('dailyStackedChart');const data=D.buildings[curBld]?.daily||[];
+  charts['dailyStackedChart']=new Chart(document.getElementById('dailyStackedChart'),{type:'line',data:{labels:data.map(d=>d.date),datasets:[
+    {label:'มีผู้เช่า',data:data.map(d=>d.occupied),borderColor:C.oc,backgroundColor:C.oc+'22',fill:true,tension:0.35,pointRadius:5,pointHoverRadius:7,borderWidth:2.5},
+    {label:'ห้องว่าง',data:data.map(d=>d.available),borderColor:C.av,backgroundColor:C.av+'11',fill:false,tension:0.35,pointRadius:5,pointHoverRadius:7,borderWidth:2,borderDash:[0]},
+    {label:'ไม่พร้อมเช่า',data:data.map(d=>d.notReady),borderColor:C.nr,backgroundColor:'transparent',fill:false,tension:0.35,pointRadius:5,pointHoverRadius:7,borderWidth:2,borderDash:[5,4]}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:tc(),font:{size:12}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} ห้อง`}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>v+' ห้อง'},grid:{color:gc()}}}}});
+}
+/* ══════════════════════════════
+   MONTHLY SUMMARY
+══════════════════════════════ */
+const MONTH_TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function getMonthLabel(m,y){return`${MONTH_TH[parseInt(m)]} ${parseInt(y)+543}`;}
+function getMonthlyData(bld){
+  const daily=D.buildings[bld]?.daily||[];
+  const months={};
+  daily.forEach(d=>{
+    const pts=d.date.split('/');
+    const key=`${pts[1]}/${pts[2]}`;
+    if(!months[key])months[key]={key,label:getMonthLabel(pts[1],pts[2]),days:[]};
+    months[key].days.push(d);
+  });
+  return Object.values(months).map(m=>{
+    const last=m.days[m.days.length-1];
+    const avgOcc=m.days.reduce((s,d)=>s+d.occupied,0)/m.days.length;
+    return{...m,total:last.total,occupied:last.occupied,available:last.available,notReady:last.notReady,
+      occValue:last.occValue,occRate:last.total>0?(last.occupied/last.total*100):0,avgOcc,daysCount:m.days.length};
+  }).sort((a,b)=>{
+    const[am,ay]=a.key.split('/');const[bm,by]=b.key.split('/');
+    return(parseInt(ay)*12+parseInt(am))-(parseInt(by)*12+parseInt(bm));
+  });
+}
+function prevMonthKey(key){const[m,y]=key.split('/');const pm=parseInt(m)-1;return pm===0?`12/${parseInt(y)-1}`:`${pm}/${y}`;}
+function renderMonthly(){
+  const blds=['All Building','Building A','Building B','Building C'];
+  const lbls=['รวมทุก Tower','Building A','Building B','Building C'];
+  const colors=[C.all,C.a,C.b,C.c];
+  const allM=getMonthlyData('All Building');
+  if(!allM.length)return;
+  const lat2=allM[allM.length-1];
+  const prevM=allM.length>1?allM[allM.length-2]:null;
+  const fmtB=v=>v+' ห้อง';const fmtR=v=>'฿'+fmt(v);
+  /* KPI cards */
+  document.getElementById('monthlyKpiGrid').innerHTML=[
+    {l:`เดือน ${lat2.label}`,v:fmt(lat2.total)+' ยูนิต',s:`บันทึก ${lat2.daysCount} วัน`,cl:'blue',b:null,cmp:''},
+    {l:'Occupied (ปลายเดือน)',v:fmt(lat2.occupied),s:`Avg. ${lat2.avgOcc.toFixed(1)} ห้อง/วัน`,cl:'green',b:{t:lat2.occRate.toFixed(1)+'%',c:'badge-green'},cmp:cmpChip('MoM',lat2.occupied,prevM?.occupied,fmtB,'cmp-mom')},
+    {l:'Available (ปลายเดือน)',v:fmt(lat2.available),s:pct(lat2.available,lat2.total)+' ของทั้งหมด',cl:'blue',b:null,cmp:cmpChip('MoM',lat2.available,prevM?.available,fmtB,'cmp-mom')},
+    {l:'Not Ready (ปลายเดือน)',v:fmt(lat2.notReady),s:pct(lat2.notReady,lat2.total)+' ของทั้งหมด',cl:'red',b:null,cmp:cmpChip('MoM',lat2.notReady,prevM?.notReady,fmtB,'cmp-mom')},
+    {l:'Est. Revenue (฿/เดือน)',v:'฿'+fmt(lat2.occValue),s:'Full Potential: ฿'+fmt(lat2.total*4500),cl:'purple',b:{t:lat2.occRate.toFixed(1)+'%',c:'badge-purple'},cmp:cmpChip('MoM',lat2.occValue,prevM?.occValue,fmtR,'cmp-mom')},
+  ].map(x=>`<div class="kpi-card ${x.cl}"><div class="kpi-label">${x.l}</div><div class="kpi-value">${x.v}</div><div class="kpi-sub">${x.b?`<span class="badge ${x.b.c}">${x.b.t}</span>`:''}<span>${x.s}</span></div>${x.cmp?`<div class="kpi-compare">${x.cmp}</div>`:''}</div>`).join('');
+  /* Charts */
+  const monthKeys=allM.map(m=>m.label);
+  dc('monthlyOccChart');
+  charts['monthlyOccChart']=new Chart(document.getElementById('monthlyOccChart'),{type:'bar',data:{labels:monthKeys,datasets:blds.map((b,i)=>({label:lbls[i],data:getMonthlyData(b).map(m=>parseFloat(m.occRate.toFixed(1))),backgroundColor:colors[i]+'cc',borderRadius:6}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{min:0,max:100,ticks:{color:tc(),callback:v=>v+'%'},grid:{color:gc()}}}}});
+  dc('monthlyRevChart');
+  charts['monthlyRevChart']=new Chart(document.getElementById('monthlyRevChart'),{type:'bar',data:{labels:monthKeys,datasets:[{label:'Est. Revenue (฿)',data:allM.map(m=>m.occValue),backgroundColor:C.oc+'cc',borderRadius:6},{label:'Full Potential (฿)',data:allM.map(m=>m.total*4500),type:'line',borderColor:'#94a3b8',borderDash:[5,4],pointRadius:3,borderWidth:1.5,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>'฿'+fmt(v)},grid:{color:gc()}}}}});
+  dc('monthlyAvgOccChart');
+  const bSlice=['Building A','Building B','Building C'];const lSlice=['Building A','Building B','Building C'];const cSlice=[C.a,C.b,C.c];
+  charts['monthlyAvgOccChart']=new Chart(document.getElementById('monthlyAvgOccChart'),{type:'bar',data:{labels:monthKeys,datasets:bSlice.map((b,i)=>({label:lSlice[i],data:getMonthlyData(b).map(m=>parseFloat(m.avgOcc.toFixed(1))),backgroundColor:cSlice[i]+'cc',borderRadius:6}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{stacked:false,ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>v+' ห้อง'},grid:{color:gc()}}}}});
+  /* Table */
+  const allMonthKeys=[...new Set(blds.flatMap(b=>getMonthlyData(b).map(m=>m.key)))].sort((a,b)=>{const[am,ay]=a.split('/');const[bm,by]=b.split('/');return(parseInt(ay)*12+parseInt(am))-(parseInt(by)*12+parseInt(bm));});
+  let rows='';
+  allMonthKeys.forEach(mk=>{
+    blds.forEach((b,bi)=>{
+      const mData=getMonthlyData(b).find(m=>m.key===mk);
+      const mPrev=getMonthlyData(b).find(m=>m.key===prevMonthKey(mk));
+      if(!mData)return;
+      const isAll=b==='All Building';
+      const occ=mData.occRate.toFixed(1);const bc=parseFloat(occ)>=50?'badge-green':parseFloat(occ)>=30?'badge-yellow':'badge-red';
+      rows+=`<tr${isAll?' style="font-weight:700;background:var(--bg-section)"':''}><td>${bi===0?`<strong>${mData.label}</strong>`:''}</td><td>${isAll?'<strong>รวมทุก Tower</strong>':lbls[bi]}</td><td class="num">${fmt(mData.total)}</td><td class="num">${fmt(mData.occupied)}</td><td class="num"><span class="badge ${bc}">${occ}%</span></td><td class="num">${mData.avgOcc.toFixed(1)}</td><td class="num">${fmt(mData.available)}</td><td class="num">${fmt(mData.notReady)}</td><td class="num">฿${fmt(mData.occValue)}</td><td class="num">${chgCell(mData.occupied,mPrev?.occupied,v=>v+' ห้อง')}</td></tr>`;
+    });
+    rows+=`<tr><td colspan="10" style="padding:4px;border:none"></td></tr>`;
+  });
+  document.getElementById('monthlyTableBody').innerHTML=rows||`<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text-muted)">ยังไม่มีข้อมูล</td></tr>`;
+}
+function renderWoWSection(){
+  const el=document.getElementById('wowSection');if(!el)return;
+  const blds=['All Building','Building A','Building B','Building C'];
+  const lbls=['รวมทุก Tower','Building A','Building B','Building C'];
+  const metrics=[
+    {key:'occupied',label:'Occupied (ห้อง)',fmtFn:v=>v+' ห้อง',positive:'up'},
+    {key:'available',label:'Available (ห้อง)',fmtFn:v=>v+' ห้อง',positive:'neutral'},
+    {key:'notReady',label:'Not Ready (ห้อง)',fmtFn:v=>v+' ห้อง',positive:'down'},
+    {key:'occValue',label:'Est. Revenue (฿)',fmtFn:v=>'฿'+fmt(v),positive:'up'},
+  ];
+  /* ───── WoW summary table per building ───── */
+  const d=lat('All Building');if(!d)return;
+  const wowRef=wowD('All Building',d.date);
+  const momRef=momD('All Building',d.date);
+  const hasWow=!!wowRef,hasMom=!!momRef;
+  const totalDays=D.buildings['All Building']?.daily?.length||0;
+  /* status note */
+  const noteHtml=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;font-size:12px;">
+    <span class="cmp-chip cmp-wow">WoW: ${hasWow?`เทียบ ${wowRef.date} ↔ ${d.date}`:`ยังไม่มีข้อมูล (มี ${totalDays} วัน / ต้องการ 7+ วัน)`}</span>
+    <span class="cmp-chip cmp-mom">MoM: ${hasMom?`เทียบ ${momRef.date} ↔ ${d.date}`:`ยังไม่มีข้อมูล (มี ${totalDays} วัน / ต้องการ 30+ วัน)`}</span>
+  </div>`;
+  /* table rows */
+  let rows='';
+  blds.forEach((b,bi)=>{
+    const cur=lat(b);if(!cur)return;
+    const wow2=wowD(b,cur.date);const mom2=momD(b,cur.date);
+    const isAll=b==='All Building';
+    metrics.forEach((m,mi)=>{
+      const currVal=cur[m.key];
+      const wowVal=wow2?wow2[m.key]:null;
+      const momVal=mom2?mom2[m.key]:null;
+      const showBld=mi===0;
+      rows+=`<tr${isAll?' style="font-weight:700;background:var(--bg-section)"':''}>
+        <td>${showBld?`<strong>${lbls[bi]}</strong>`:''}</td>
+        <td>${m.label}</td>
+        <td class="num">${m.fmtFn(currVal)}</td>
+        <td class="num">${wowVal!==null?m.fmtFn(wowVal):'<span class="neutral">—</span>'}</td>
+        <td class="num">${chgCell(currVal,wowVal,m.fmtFn)}</td>
+        <td class="num">${momVal!==null?m.fmtFn(momVal):'<span class="neutral">—</span>'}</td>
+        <td class="num">${chgCell(currVal,momVal,m.fmtFn)}</td>
+      </tr>`;
+    });
+    rows+=`<tr><td colspan="7" style="padding:4px"></td></tr>`;
+  });
+  el.innerHTML=noteHtml+`<table class="tower-table"><thead><tr>
+    <th>Tower</th><th>Metric</th>
+    <th class="num">ล่าสุด (${d.date})</th>
+    <th class="num">7 วันก่อน${wowRef?' ('+wowRef.date+')':''}</th>
+    <th class="num">เปลี่ยน WoW</th>
+    <th class="num">30 วันก่อน${momRef?' ('+momRef.date+')':''}</th>
+    <th class="num">เปลี่ยน MoM</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+function renderBarOccAll(){
+  dc('barOccAll');const bs=['All Building','Building A','Building B','Building C'],lb=['รวมทุก Tower','Building A','Building B','Building C'];
+  const rates=bs.map(b=>{const d=lat(b);if(!d)return 0;return d.total>0?parseFloat((d.occupied/d.total*100).toFixed(1)):0;});
+  charts['barOccAll']=new Chart(document.getElementById('barOccAll'),{type:'bar',data:{labels:lb,datasets:[{label:'Occupancy Rate (%)',data:rates,backgroundColor:[C.all,C.a,C.b,C.c].map(x=>x+'cc'),borderRadius:8},{label:'Target (70%)',data:[70,70,70,70],type:'line',borderColor:'#ef4444',borderDash:[6,4],pointRadius:0,borderWidth:2,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{min:0,max:100,ticks:{color:tc(),callback:v=>v+'%'},grid:{color:gc()}}}}});
+}
+function renderBarProjection(){
+  dc('barProjection');
+  charts['barProjection']=new Chart(document.getElementById('barProjection'),{type:'bar',data:{labels:['ปัจจุบัน (6 พ.ค.)','Target End May','Target June','Target Q3'],datasets:[{label:'Est. Revenue (฿)',data:[232000,308000,399000,575000],backgroundColor:[C.oc+'cc','#6366f1cc','#7c3aedcc','#4f46e5cc'],borderRadius:8},{label:'Full Potential (฿)',data:[875500,null,null,null],type:'line',borderColor:'#94a3b8',borderDash:[4,4],pointRadius:5,borderWidth:2,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{size:12}}}},scales:{x:{ticks:{color:tc()},grid:{color:gc()}},y:{ticks:{color:tc(),callback:v=>'฿'+fmt(v)},grid:{color:gc()}}}}});
+}
+function showTab(name,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='overview')renderAll_overview();
+  else if(name==='tower'){renderTowerTable();renderTowerDonuts();renderBarRevPerRoom();}
+  else if(name==='daily'){renderDailyTable();renderDailyChart();}
+  else if(name==='monthly')renderMonthly();
+  else if(name==='analysis'){renderWoWSection();renderBarOccAll();}
+  else if(name==='action')renderBarProjection();
+}
+function renderAll_overview(){renderDonutAll();renderBarTower();renderBarOccRate();renderLineTrend();renderLineRevenue();}
+function toggleDark(){
+  const html=document.documentElement;const d=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',d?'light':'dark');
+  Object.keys(charts).forEach(k=>{try{charts[k].destroy();}catch(e){} delete charts[k];});
+  /* render global elements (KPI + summary table) ทุกครั้ง */
+  try{renderKPIs();}catch(e){}
+  try{renderTowerTable();}catch(e){}
+  /* render active tab charts */
+  const active=document.querySelector('.tab-content.active')?.id?.replace('tab-','');
+  if(active==='overview'){try{renderAll_overview();}catch(e){}}
+  else if(active==='tower'){try{renderTowerDonuts();}catch(e){};try{renderBarRevPerRoom();}catch(e){}}
+  else if(active==='daily'){try{renderDailyTable();}catch(e){};try{renderDailyChart();}catch(e){}}
+  else if(active==='monthly'){try{renderMonthly();}catch(e){}}
+  else if(active==='analysis'){try{renderWoWSection();}catch(e){};try{renderBarOccAll();}catch(e){}}
+  else if(active==='action'){try{renderBarProjection();}catch(e){}}
+}
+async function exportPDF(){
+  const btn=document.querySelector('.btn-success');if(!btn)return;
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='⏳ กำลังเตรียม...';
+
+  /* Step 1: Switch to light mode for clean print */
+  const wasDark=document.documentElement.getAttribute('data-theme')==='dark';
+  if(wasDark){
+    document.documentElement.setAttribute('data-theme','light');
+    Object.keys(charts).forEach(k=>{try{charts[k].destroy();}catch(e){}delete charts[k];});
+    try{renderKPIs();}catch(e){} try{renderTowerTable();}catch(e){}
+    await new Promise(r=>setTimeout(r,200));
+  }
+
+  /* Step 2: Unlock all hidden tabs → canvas dimensions become valid */
+  const tabs=document.querySelectorAll('.tab-content');
+  tabs.forEach(t=>{
+    t.style.position='relative';
+    t.style.opacity='1';
+    t.style.pointerEvents='none';
+  });
+  await new Promise(r=>setTimeout(r,200));
+
+  /* Step 3: Render every chart in every tab */
+  btn.textContent='⏳ Rendering charts...';
+  try{renderAll_overview();}catch(e){}
+  try{renderTowerDonuts();}catch(e){}
+  try{renderBarRevPerRoom();}catch(e){}
+  try{renderDailyTable();}catch(e){}
+  try{renderDailyChart();}catch(e){}
+  try{renderMonthly();}catch(e){}
+  try{renderWoWSection();}catch(e){}
+  try{renderBarOccAll();}catch(e){}
+  try{renderBarProjection();}catch(e){}
+  await new Promise(r=>setTimeout(r,800));
+
+  /* Step 4: Lock chart dimensions so @media print won't distort them */
+  Object.values(charts).forEach(ch=>{
+    try{
+      const w=ch.canvas.offsetWidth||ch.canvas.width||700;
+      const h=ch.canvas.offsetHeight||ch.canvas.height||260;
+      ch.options.responsive=false;ch.resize(w,h);ch.update('none');
+    }catch(e){}
+  });
+  await new Promise(r=>setTimeout(r,300));
+
+  /* Step 5: Restore inline styles — @media print CSS takes over for layout */
+  tabs.forEach(t=>{
+    t.style.position='';
+    t.style.opacity='';
+    t.style.pointerEvents='';
+  });
+
+  /* Step 6: Print — @media print CSS shows all tabs with page breaks */
+  btn.textContent='📄 กำลัง Print...';
+  window.print();
+
+  /* Step 7: Restore after print dialog closes */
+  const restore=()=>{
+    if(wasDark){
+      document.documentElement.setAttribute('data-theme','dark');
+      Object.keys(charts).forEach(k=>{try{charts[k].destroy();}catch(e){}delete charts[k];});
+      try{renderKPIs();}catch(e){} try{renderTowerTable();}catch(e){}
+      const act=document.querySelector('.tab-content.active')?.id?.replace('tab-','');
+      if(act==='overview'){try{renderAll_overview();}catch(e){}}
+      else if(act==='tower'){try{renderTowerDonuts();}catch(e){};try{renderBarRevPerRoom();}catch(e){}}
+      else if(act==='daily'){try{renderDailyTable();}catch(e){};try{renderDailyChart();}catch(e){}}
+      else if(act==='monthly'){try{renderMonthly();}catch(e){}}
+      else if(act==='analysis'){try{renderWoWSection();}catch(e){};try{renderBarOccAll();}catch(e){}}
+      else if(act==='action'){try{renderBarProjection();}catch(e){}}
+    }else{
+      Object.values(charts).forEach(ch=>{try{ch.options.responsive=true;ch.resize();}catch(e){}});
+    }
+    btn.textContent=orig;btn.disabled=false;
+  };
+  window.addEventListener('afterprint',restore,{once:true});
+  setTimeout(restore,30000);
+}
+
+
+/* ── gviz JSONP: ดึงข้อมูลตรงจาก Google Sheet (ต้อง Public) ── */
+function fetchGviz(sheetName){
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error('timeout 15s')),15000);
+    window.google=window.google||{};
+    window.google.visualization=window.google.visualization||{};
+    window.google.visualization.Query={setResponse:(d)=>{clearTimeout(timer);resolve(d);}};
+    const s=document.createElement('script');
+    s.onerror=()=>{clearTimeout(timer);reject(new Error('script load error'));};
+    s.src='https://docs.google.com/spreadsheets/d/'+FILE_ID+
+      '/gviz/tq?tqx=out:json&headers=1'+
+      (sheetName?'&sheet='+encodeURIComponent(sheetName):'');
+    document.head.appendChild(s);
+  });
+}
+function parseGvizRows(data){
+  const rows=(data&&data.table&&data.table.rows)||[];
+  const result=[];
+  const pV=c=>(!c||c.v==null)?0:parseFloat(String(c.v).replace(/,/g,''))||0;
+  rows.forEach(row=>{
+    const c=row.c||[];
+    if(!c[0]||c[0].v==null)return;
+    const v=String(c[0].v);
+    let day,mon,yr;
+    /* gviz Date object: Date(year, month-0indexed, day) */
+    const dm=v.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+    if(dm){yr=+dm[1];mon=+dm[2]+1;day=+dm[3];}
+    else{const tm=v.match(/^(\d+)\/(\d+)\/(\d+)$/);if(tm){day=+tm[1];mon=+tm[2];yr=+tm[3];}}
+    if(!day)return;
+    const total=pV(c[1]);if(total<=0)return;
+    result.push({date:`${day}/${mon}/${yr}`,total,value:pV(c[2]),
+      available:pV(c[3]),availValue:pV(c[4]),
+      occupied:pV(c[5]),occValue:pV(c[6]),
+      notReady:pV(c[7]),nrValue:pV(c[8])});
+  });
+  return result;
+}
+
+
+async function refreshData(){
+  const btn=document.querySelector('.btn-ghost');if(btn){btn.textContent='⏳ กำลังโหลด...';}
+  const lu=document.getElementById('lastUpdated');if(lu)lu.textContent='📡 กำลังโหลดจาก Google Sheet...';
+  let dataLoaded=false;let latestDate=null;let errMsg='';
+  try{
+    if(!window.cowork){
+      /* HTML ในเบราว์เซอร์: ลอง gviz JSONP (Google Sheet ต้องเป็น Public) */
+      let gvizOk=false;
+      try{
+        const blds=['All Building','Building A','Building B','Building C'];
+        for(const bld of blds){
+          try{
+            const gdata=await fetchGviz(bld);
+            const rows=parseGvizRows(gdata);
+            if(rows.length>0){
+              D.buildings[bld]={daily:rows};
+              gvizOk=true;
+            }
+          }catch(e){console.warn('gviz tab',bld,e.message);}
+        }
+        if(gvizOk){
+          /* Recompute Building C if not from sheet */
+          if(!D.buildings['Building C']?.daily?.length&&
+             D.buildings['All Building']?.daily?.length&&
+             D.buildings['Building A']?.daily?.length&&
+             D.buildings['Building B']?.daily?.length){
+            const zero={total:0,value:0,available:0,availValue:0,occupied:0,occValue:0,notReady:0,nrValue:0};
+            const all=D.buildings['All Building'].daily;
+            const a=D.buildings['Building A'].daily;
+            const b=D.buildings['Building B'].daily;
+            D.buildings['Building C']={daily:all.map((row,i)=>{
+              const ra=a[i]||zero,rb=b[i]||zero;
+              return{date:row.date,
+                total:row.total-ra.total-rb.total,value:row.value-ra.value-rb.value,
+                available:row.available-ra.available-rb.available,availValue:row.availValue-ra.availValue-rb.availValue,
+                occupied:row.occupied-ra.occupied-rb.occupied,occValue:row.occValue-ra.occValue-rb.occValue,
+                notReady:row.notReady-ra.notReady-rb.notReady,nrValue:row.nrValue-ra.nrValue-rb.nrValue};
+            })};
+          }
+          dataLoaded=true;
+          const daily=D.buildings['All Building']?.daily||[];
+          if(daily.length)latestDate=daily[daily.length-1].date;
+        }
+      }catch(e){console.warn('gviz overall',e);}
+      if(!gvizOk){
+        /* Fallback: hardcoded D (Offline) */
+        errMsg='Offline — กรุณา Share Google Sheet เป็น "Anyone with link" เพื่อดูข้อมูล Live';
+        const daily=D.buildings['All Building']?.daily||[];
+        if(daily.length){latestDate=daily[daily.length-1].date;dataLoaded=true;errMsg='';}
+      }
+    }
+    else{
+      const r=await window.cowork.callMcpTool('mcp__c3f78f3d-59f1-4385-a5c9-a0b5e1585ea4__read_file_content',{fileId:FILE_ID});
+      if(!r){errMsg='Sheet ไม่ตอบสนอง (r=null)';}
+      else{
+        /* callMcpTool ใน Artifact ส่ง response แบบ {content:[{type,text}],...} */
+        /* text จะเป็น JSON string ที่มี fileContent อยู่ข้างใน */
+        let fileContent=null;
+        if(r.fileContent){
+          fileContent=r.fileContent; /* direct (fallback) */
+        }else if(r.content&&r.content[0]&&r.content[0].text){
+          try{
+            const parsed=JSON.parse(r.content[0].text);
+            fileContent=parsed.fileContent||r.content[0].text;
+          }catch(ex){
+            fileContent=r.content[0].text; /* ถ้า parse ไม่ได้ ใช้ text ตรงๆ */
+          }
+        }
+        if(!fileContent){
+          const keys=Object.keys(r).join(',');
+          errMsg='ไม่พบ fileContent | keys=['+keys+']';
+        }else{
+          const p=parseSheet(fileContent);
+          if(!p){errMsg='parseSheet คืนค่า null';}
+          else{
+            mergeData(p);
+            dataLoaded=true;
+            const daily=D.buildings['All Building']?.daily||[];
+            if(daily.length)latestDate=daily[daily.length-1].date;
+          }
+        }
+      }
+    }
+  }catch(e){errMsg=String(e?.message||e);console.warn('Refresh failed',e);}
+  finally{
+    if(btn)btn.textContent='🔄 Refresh';
+    const now=new Date().toLocaleString('th-TH');
+    if(dataLoaded&&latestDate){
+      document.getElementById('lastUpdated').textContent='📊 ข้อมูลล่าสุด: '+latestDate+' | ซิงค์: '+now;
+      document.getElementById('footerUpdated').textContent='📊 ข้อมูล Sheet ล่าสุด: '+latestDate+' | ซิงค์: '+now;
+    }else{
+      document.getElementById('lastUpdated').textContent='⚠️ Offline: '+errMsg;
+      document.getElementById('footerUpdated').textContent='⚠️ ข้อมูล Offline ('+now+') | '+errMsg;
+    }
+    try{renderKPIs();}catch(e){}
+    try{renderTowerTable();}catch(e){}
+    const active=document.querySelector('.tab-content.active')?.id?.replace('tab-','');
+    if(active==='overview'){try{renderAll_overview();}catch(e){}}
+    else if(active==='tower'){try{renderTowerDonuts();}catch(e){};try{renderBarRevPerRoom();}catch(e){}}
+    else if(active==='daily'){try{renderDailyTable();}catch(e){};try{renderDailyChart();}catch(e){}}
+    else if(active==='monthly'){try{renderMonthly();}catch(e){}}
+    else if(active==='analysis'){try{renderWoWSection();}catch(e){};try{renderBarOccAll();}catch(e){}}
+    else if(active==='action'){try{renderBarProjection();}catch(e){}}
+  }
+}
+function parseSheet(content){
+  try{
+    const s={};const seen=new Set();
+    const n=v=>parseFloat((v||'0').replace(/,/g,''))||0;
+    const excelDate=serial=>{const d=new Date((Math.round(serial)-25569)*86400000);return`${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;};
+    const lines=content.split('\n');let cur=null;
+    for(const line of lines){
+      const l=line.trim();
+      if(!l.startsWith('|'))continue;
+      const cells=l.split('|').map(c=>c.trim()).filter(c=>c);
+      if(!cells.length)continue;
+      const f=cells[0];
+      /* section header: first cell contains /Date */
+      if(f.includes('/Date')||f.includes('/date')){
+        const sec=f.split('/')[0].trim();
+        if(!seen.has(sec)){seen.add(sec);cur=sec;s[cur]={daily:[]};}
+        else cur=null;/* skip duplicate section */
+        continue;
+      }
+      if(!cur||f===':-:'||f.startsWith(':-'))continue;
+      const numVal=n(f);
+      let dateStr=null;
+      if(f.match(/^\d+\/\d+\/\d{4}/))dateStr=f;
+      else if(numVal>=40000&&numVal<=60000)dateStr=excelDate(numVal);
+      if(dateStr&&n(cells[1])>0){
+        s[cur].daily.push({date:dateStr,total:n(cells[1]),value:n(cells[2]),available:n(cells[3]),availValue:n(cells[4]),occupied:n(cells[5]),occValue:n(cells[6]),notReady:n(cells[7]),nrValue:n(cells[8])});
+      }
+    }
+    return s;
+  }catch(e){console.warn('parseSheet error',e);return null;}
+}
+function mergeData(p){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const cm=months[new Date().getMonth()];
+  ['All Building','Building A','Building B'].forEach(bk=>{
+    const keys=Object.keys(p).filter(k=>k.startsWith(bk));
+    const key=keys.find(k=>k.includes(cm))||keys.find(k=>p[k].daily.length>0);
+    if(key&&p[key].daily.length>0)D.buildings[bk].daily=p[key].daily.filter(d=>d.total>0);
+  });
+  const all=D.buildings['All Building'].daily;
+  const a=D.buildings['Building A'].daily;
+  const b=D.buildings['Building B'].daily;
+  const zero={total:0,value:0,available:0,availValue:0,occupied:0,occValue:0,notReady:0,nrValue:0};
+  D.buildings['Building C'].daily=all.map((row,i)=>{
+    const ra=a[i]||zero,rb=b[i]||zero;
+    return{date:row.date,total:row.total-ra.total-rb.total,value:row.value-ra.value-rb.value,available:row.available-ra.available-rb.available,availValue:row.availValue-ra.availValue-rb.availValue,occupied:row.occupied-ra.occupied-rb.occupied,occValue:row.occValue-ra.occValue-rb.occValue,notReady:row.notReady-ra.notReady-rb.notReady,nrValue:row.nrValue-ra.nrValue-rb.nrValue};
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  /* ── ยืนยันว่า JS รันได้ ── */
+  const lu0=document.getElementById('lastUpdated');
+  if(lu0)lu0.textContent='⚙️ กำลังเริ่มต้น...';
+  /* ── ยืนยันว่า JS รันได้ ── */
+  const lu=document.getElementById('lastUpdated');
+  if(lu)lu.textContent='⚙️ กำลังเริ่มต้น...';
+
+  /* Render แค่ Active Tab (overview) + global elements
+     inactive tabs ใช้ position:absolute → canvas size 0 → chart พัง */
+  try{renderKPIs();}catch(e){}
+  try{renderTowerTable();}catch(e){}
+  try{renderAll_overview();}catch(e){}
+
+  const ov=document.getElementById('loadingOverlay');if(ov)ov.style.display='none';
+  const now=new Date().toLocaleString('th-TH');
+  document.getElementById('lastUpdated').textContent='📡 กำลังโหลดจาก Google Sheet...';
+  document.getElementById('footerUpdated').textContent='📡 กำลังโหลดข้อมูลจาก Google Sheet...';
+  const doRefresh=async()=>{
+    try{await Promise.race([refreshData(),new Promise(r=>setTimeout(r,30000))]);}
+    catch(e){console.warn('Refresh failed:',e);}
+  };
+  doRefresh();
+  setInterval(doRefresh,5*60*1000);
+});
+</script>
+</body>
+</html>
